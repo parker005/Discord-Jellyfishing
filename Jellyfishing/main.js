@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, UserFlags, SelectMenuOptionBuilder, Collection, codeBlock } = require('discord.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const Sequelize = require('sequelize');
@@ -12,7 +12,9 @@ const sequelize = new Sequelize('database', 'user', 'password', {
 });
 
 
+//sequelize db formatting
 const Tags = sequelize.define('tags', {
+    //tag column definitions
     user: {
         type: Sequelize.STRING,
         unique: true,
@@ -25,32 +27,43 @@ const Tags = sequelize.define('tags', {
 });
 
 
-
+//init confirmation
 client.on('ready', () => {
     Tags.sync();
     console.log(client.user.tag)
 });
 
-
+//define sleep
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 
+
+//set smack initial being 0
 {var smack = 0};
 
 
+//function to spawn lenny
 async function lenny_spawn() {
+    //get channel
     const channel = await client.channels.fetch('1020187811594391622')
+    //embed
     const bobEmbed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setTitle("A WILD JELLYFISH APPPEARS")
         .setImage('http://drawcentral.com/wp-content/uploads/2015/03/Spongebob-Jellyfish.jpg')
 
-    channel.send({ embeds: [bobEmbed] });
+    //send message then delete after 200*1000ms
+    channel.send({ embeds: [bobEmbed] }).then(msg => {
+        setTimeout(() => msg.delete(), 200000)
+    });
 
+    //set smack for lenny spawn
     smack = 1
     console.log(smack)
-    await sleep(20*1000);
+    //wait 200*1000ms
+    await sleep(200*1000);
+    //set smack for lenny gone
     smack=0
-    console.log(smack)
+    
 };
 
 client.on('interactionCreate', async interaction => {
@@ -67,19 +80,22 @@ client.on('interactionCreate', async interaction => {
             await interaction.reply("No jellyfish here")
         }
 
+        //if jellyfish in chat
         if (smack === 1) {
             const bobEmbed = new EmbedBuilder()
                 .setColor(0x0099FF)
                 .setTitle('Caught!')
 
             await interaction.reply({ embeds: [bobEmbed] });
+            //set smack for lenny being gone
             smack = 0
             console.log(smack)
 
-
+            //define the user catching
             var tagUser = `${interaction.user}`
 
             try {
+                //if user not in database
                 const tag = await Tags.create({
                     user: tagUser,
                     catches: 1,
@@ -88,12 +104,14 @@ client.on('interactionCreate', async interaction => {
             }
 
             catch (error) {
+                //if user already in database
                 if (error.name === "SequelizeUniqueConstraintError") {
                     const tag = await Tags.findOne({ where: {user: tagUser}});
 
+                    //formate reply
                     if (tag) {
                         tag.increment('catches')
-                        return interaction.followUp(tagUser + " has " + String(tag.get('catches'))+" catches total")
+                        return interaction.followUp(tagUser + " has " + String(tag.get('catches')+1)+" catches total")
                     }
                     }
                 }
@@ -101,14 +119,27 @@ client.on('interactionCreate', async interaction => {
         }
     
     if (commandName === 'leaderboard') {
+
+        //assign null value as array
         board = []
+
+        //SQLite db request
         const top10 = await sql.prepare("SELECT * FROM tags ORDER BY catches DESC LIMIT 10;").all();
+
+        //map database response to board variable array
         top10.map(({ user, catches }) => {
             board.push(`${user} ${catches}`)
         });
+
+        //database formatting
         board = board.toString();
         board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
 
+        //embed
         const embed = new EmbedBuilder()
             .setTitle("Leaderboard")
             .setColor(0x0099FF)
@@ -118,10 +149,11 @@ client.on('interactionCreate', async interaction => {
     }
 
     if (commandName === 'lennyhelp') {
+        //embed
         const embed = new EmbedBuilder()
             .setTitle("Command List")
             .setColor(0x0099FF)
-            .setDescription("~ /lenny *a simple command that replies hi\n~ /catch *when you see a jellyfish enter this command to catch it*\n~ /leaderboard *replies with a leaderboard of catches in the server*")
+            .setDescription("~ /lenny *a simple command that replies hi\n~ /catch  when you see a jellyfish enter this command to catch it*\n~ /leaderboard *replies with a leaderboard of catches in the server*")
 
         return interaction.reply({ embeds: [embed]})
     }
@@ -129,10 +161,12 @@ client.on('interactionCreate', async interaction => {
 });
 
 
+//async function in normal function format
 function spawn_lenny() {
     lenny_spawn()
 }
 
-setInterval(spawn_lenny, 650*1000);
+//spawn every 5 minutes
+setInterval(spawn_lenny, 300*1000);
 
 client.login('')
