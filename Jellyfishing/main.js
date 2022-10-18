@@ -131,13 +131,18 @@ client.on('interactionCreate', async interaction => {
             board.push(`${user} ${catches}`)
         });
 
-        //database formatting
+        //database formatting x10
         board = board.toString();
         board = board.replace(",", "\n")
         board = board.replace(",", "\n")
         board = board.replace(",", "\n")
         board = board.replace(",", "\n")
         board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
+        board = board.replace(",", "\n")
+                              
 
         //embed
         const embed = new EmbedBuilder()
